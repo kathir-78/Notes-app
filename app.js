@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
 const route = require('./server/routes/index');
+const dashboard = require('./server/routes/dashboard');
 
 const app = express();
 const port = 3000 || process.env.PORT;
@@ -19,6 +20,7 @@ app.set('layout', './layouts/main');
 app.set('view engine', 'ejs');
 
 app.use('/', route);
+app.use('/dashboard', dashboard);
 app.get('*', (req, res) =>
     {
         res.status(404).render('404');
