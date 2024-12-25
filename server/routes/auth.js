@@ -80,7 +80,7 @@ passport.serializeUser(function (user, done) {
 });
 
 // Deserialize user , Retrieves the user by ID from the database and attaches the user object to req.user , retrives user data from session
-passport.deserializeUser(async function (id, done) {
+passport.deserializeUser(async function (id, done) {   // it gives the req.user parameter
   try {
     const user = await User.findById(id);
     done(null, user);
@@ -88,5 +88,7 @@ passport.deserializeUser(async function (id, done) {
     done(err, null);
   }
 });
+
+
 
 module.exports = router;
