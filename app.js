@@ -6,6 +6,7 @@ const route = require('./server/routes/index');
 const dashboard = require('./server/routes/dashboard');
 const connectDB = require('./server/config/database');
 const passport = require('passport');
+const methodOverride = require('method-override');
 const passportauth = require('./server/routes/auth');
 const cacheControl = require('./server/middleware/cacheControl');
 const session = require('express-session');
@@ -49,6 +50,9 @@ app.set('view engine', 'ejs');
 
 //cache control 
 app.use(cacheControl);
+
+//method override
+app.use(methodOverride('_method'));
 
 //routes
 app.use('/', route);
