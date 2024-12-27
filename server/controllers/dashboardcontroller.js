@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 
 exports.dashboard = async (req, res) => {
   let perPage = 8;
-  let page = req.query.page || 1;
+  let page = req.query.page || 1; //req.query contains the query strings which has a key value and it is in object format inside the object all the value are in string
 
   const locals = {
     title: "dashboard",
@@ -29,8 +29,6 @@ exports.dashboard = async (req, res) => {
       .exec(); // Execution
 
     const count = await Note.countDocuments();
-
-    console.log(count);
     res.render("dashboard/index", {
       userName: req.user.firstName,
       notes,
@@ -42,12 +40,16 @@ exports.dashboard = async (req, res) => {
   } catch (error) {
     console.log(error.message);
   }
-
-  console.log(new mongoose.Types.ObjectId(req.user.id));
 };
 
 // GET method for view data
 exports.viewNote = async (req, res) => {
+
+  const locals = {
+    title: "View notes",
+    description: "view notes for particular note"
+  }
+
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
@@ -62,6 +64,25 @@ exports.viewNote = async (req, res) => {
     res.render("./dashboard/user-view", {
       note,
       noteID: req.params.id,
+      locals,
+      layout: "./layouts/dashboard",
+    });
+
+  } catch (e) {
+    console.log(e.message);
+  }
+};
+
+// Add notes GET method
+exports.dashboardAddnote = async (req, res) => {
+  const locals = {
+    title: "Add Notes",
+    description: "Dashboard for the notes app",
+  };
+
+  try {
+    res.render("./dashboard/add", {
+      locals,
       layout: "./layouts/dashboard",
     });
   } catch (e) {
@@ -69,36 +90,17 @@ exports.viewNote = async (req, res) => {
   }
 };
 
-
-// Add notes GET method
-exports.dashboardAddnote = async (req, res) => {
-
-  const locals = {
-    title: "Add Notes",
-    description: "Dashboard for the notes app",
-  };
-
-  try {
-    res.render('./dashboard/add' ,{
-      locals,
-      layout: './layouts/dashboard'
-    })
-  } catch (e) {
-    console.log(e.message);
-  }
-}
-
-
 // Add notes POST method
 exports.dashboardAddnoteSubmit = async (req, res) => {
   try {
     req.body.user = req.user.id;
     await Note.create(req.body);
-    res.status(200).redirect('/dashboard');
+    res.status(200).redirect("/dashboard");
   } catch (error) {
-    
+    console.log(error.message);
+    res.status(500).send("An error occured while adding notes");
   }
-}
+};
 
 // update method
 exports.updateNote = async (req, res) => {
@@ -142,5 +144,55 @@ exports.deleteNote = async (req, res) => {
   }
 };
 
+// GET method for dashboard search
+exports.dashboardsearch = async (req, res) => {
+ 
+  const locals = {
+    title: "Search",
+    description: "Search notes"
+  }
 
-// Add method
+  try {
+    res.render("./dashboard/search", {
+      searchResults: "",
+      locals,
+      layout: "./layouts/dashboard",
+    });
+  } catch (e) {
+    console.log(e.message);
+  }
+};
+
+// POST method for dashboard search                      // main method is used for searching 
+exports.dashboardsearchSubmit = async (req, res) => {
+
+  const locals = {
+    title: "Search",
+    description: "Search notes"
+  }
+
+  try {
+    const searchTerm = req.body.searchTerm;
+
+    //filter to accept only alphabets and numbers
+    const searchTermFilter = searchTerm.replace(/[^a-zA-Z0-9]/g, "");
+
+    const searchResultNote = await Note.find({
+      // whether any of the condition in true either title or body
+
+      $or: [
+        { title: { $regex: searchTermFilter, $options: "i" } }, // regex is pattern matching used in mongodb
+        { body: { $regex: searchTermFilter, $options: "i" } },
+      ],
+    }).where({ user: req.user.id });
+
+    res.render("./dashboard/search", {
+      searchResults: searchResultNote,
+      locals,
+      layout: "./layouts/dashboard",
+    });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).send("Error occured while searching notes");
+  }
+};

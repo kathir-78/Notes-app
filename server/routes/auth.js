@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const User = require("../models/User");
+const { isLoggedIn } = require("../middleware/checkAuth");
 
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
@@ -90,5 +91,14 @@ passport.deserializeUser(async function (id, done) {   // it gives the req.user 
 });
 
 
+// check for the user is logged in if he is logged in he is directed to dashboard else redirect to sign page
+router.get('/auth/dashboard', (req, res) => {
+  if(req.user) {
+    res.redirect('/dashboard');
+  }
+  else {
+    res.redirect('/auth/google');
+  }
+})
 
 module.exports = router;
